@@ -9,14 +9,23 @@ import (
 
 	"github.com/vogiaan1904/order-svc/config"
 	"github.com/vogiaan1904/order-svc/internal/appconfig/mongo"
+	"github.com/vogiaan1904/order-svc/internal/interceptors"
 	repository "github.com/vogiaan1904/order-svc/internal/repositories"
-	"github.com/vogiaan1904/order-svc/internal/service"
+	service "github.com/vogiaan1904/order-svc/internal/services"
+	"github.com/vogiaan1904/order-svc/pkg/grpcservices"
+	pkgLog "github.com/vogiaan1904/order-svc/pkg/log"
 	order "github.com/vogiaan1904/order-svc/protogen/golang/order"
-	product "github.com/vogiaan1904/order-svc/protogen/golang/product"
 	"google.golang.org/grpc"
 )
 
 func main() {
+	// Initialize logger
+	l := pkgLog.InitializeZapLogger(pkgLog.ZapConfig{
+		Level:    "debug",
+		Encoding: "development",
+		Mode:     "console",
+	})
+
 	cfg, err := config.Load()
 	if err != nil {
 		panic(err)
@@ -28,25 +37,28 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	server := grpc.NewServer()
-
-	productSvcAddr := cfg.Grpc.ProductServiceAddress
-	productCnn, err := grpc.Dial(productSvcAddr, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("failed to connect to product service: %v", err)
-	}
-	defer productCnn.Close()
-	productClient := product.NewProductServiceClient(productCnn)
-
+	// MongoDB connection
 	mClient, err := mongo.Connect(cfg.Mongo.DatabaseUri)
 	if err != nil {
 		panic(err)
 	}
 	defer mongo.Disconnect(mClient)
-
 	db := mClient.Database(cfg.Mongo.DatabaseName)
-	orderRepo := repository.NewOrderRepository(db)
-	orderSvc := service.NewOrderService(orderRepo, productClient)
+
+	// gRPC clients
+	grpcClients, cleanupGrpc, err := grpcservices.InitGrpcClients(cfg.Grpc.ProductSvcAddr)
+	if err != nil {
+		log.Fatalf("failed to initialize gRPC clients: %v", err)
+	}
+	defer cleanupGrpc()
+
+	orderRepo := repository.NewOrderRepository(l, db)
+	orderSvc := service.NewOrderService(l, orderRepo, grpcClients.Product)
+
+	// gRPC server
+	server := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(interceptors.ValidationInterceptor, interceptors.ErrorHandlerInterceptor),
+	)
 
 	order.RegisterOrderServiceServer(server, orderSvc)
 
@@ -54,7 +66,7 @@ func main() {
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("gRPC server started  on %s", addr)
+		log.Printf("gRPC server started on %s", addr)
 		if err := server.Serve(lnr); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}

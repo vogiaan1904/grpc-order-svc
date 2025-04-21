@@ -32,7 +32,7 @@ func Connect(uri string) (mongo.Client, error) {
 		return nil, fmt.Errorf("failed to ping to DB: %w", err)
 	}
 
-	log.Println("Connected to MongoDB.")
+	log.Println("Connected to MongoDB")
 
 	return client, nil
 }

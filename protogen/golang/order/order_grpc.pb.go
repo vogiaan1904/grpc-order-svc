@@ -23,8 +23,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrderServiceClient interface {
-	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateOrder(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	FindOne(ctx context.Context, in *FindOneRequest, opts ...grpc.CallOption) (*FindOneResponse, error)
+	FindMany(ctx context.Context, in *FindManyRequest, opts ...grpc.CallOption) (*FindManyResponse, error)
 }
 
 type orderServiceClient struct {
@@ -35,7 +36,7 @@ func NewOrderServiceClient(cc grpc.ClientConnInterface) OrderServiceClient {
 	return &orderServiceClient{cc}
 }
 
-func (c *orderServiceClient) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *orderServiceClient) CreateOrder(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/order.OrderService/CreateOrder", in, out, opts...)
 	if err != nil {
@@ -53,12 +54,22 @@ func (c *orderServiceClient) FindOne(ctx context.Context, in *FindOneRequest, op
 	return out, nil
 }
 
+func (c *orderServiceClient) FindMany(ctx context.Context, in *FindManyRequest, opts ...grpc.CallOption) (*FindManyResponse, error) {
+	out := new(FindManyResponse)
+	err := c.cc.Invoke(ctx, "/order.OrderService/FindMany", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderServiceServer is the server API for OrderService service.
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility
 type OrderServiceServer interface {
-	CreateOrder(context.Context, *CreateOrderRequest) (*emptypb.Empty, error)
+	CreateOrder(context.Context, *CreateRequest) (*emptypb.Empty, error)
 	FindOne(context.Context, *FindOneRequest) (*FindOneResponse, error)
+	FindMany(context.Context, *FindManyRequest) (*FindManyResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
 
@@ -66,11 +77,14 @@ type OrderServiceServer interface {
 type UnimplementedOrderServiceServer struct {
 }
 
-func (UnimplementedOrderServiceServer) CreateOrder(context.Context, *CreateOrderRequest) (*emptypb.Empty, error) {
+func (UnimplementedOrderServiceServer) CreateOrder(context.Context, *CreateRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrder not implemented")
 }
 func (UnimplementedOrderServiceServer) FindOne(context.Context, *FindOneRequest) (*FindOneResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindOne not implemented")
+}
+func (UnimplementedOrderServiceServer) FindMany(context.Context, *FindManyRequest) (*FindManyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindMany not implemented")
 }
 func (UnimplementedOrderServiceServer) mustEmbedUnimplementedOrderServiceServer() {}
 
@@ -86,7 +100,7 @@ func RegisterOrderServiceServer(s grpc.ServiceRegistrar, srv OrderServiceServer)
 }
 
 func _OrderService_CreateOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateOrderRequest)
+	in := new(CreateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -98,7 +112,7 @@ func _OrderService_CreateOrder_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/order.OrderService/CreateOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServiceServer).CreateOrder(ctx, req.(*CreateOrderRequest))
+		return srv.(OrderServiceServer).CreateOrder(ctx, req.(*CreateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -121,6 +135,24 @@ func _OrderService_FindOne_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_FindMany_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FindManyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).FindMany(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderService/FindMany",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).FindMany(ctx, req.(*FindManyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -135,6 +167,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FindOne",
 			Handler:    _OrderService_FindOne_Handler,
+		},
+		{
+			MethodName: "FindMany",
+			Handler:    _OrderService_FindMany_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

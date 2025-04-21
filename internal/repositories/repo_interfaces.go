@@ -9,4 +9,5 @@ import (
 type OrderRepository interface {
 	CreateOrder(ctx context.Context, opt CreateOrderOptions) (models.Order, error)
 	FindManyOrders(ctx context.Context, opt FindManyOrderOptions) ([]models.Order, error)
+	FindOneOrder(ctx context.Context, opt FindOneOrderOptions) (models.Order, error)
 }

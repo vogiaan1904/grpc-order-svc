@@ -5,7 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (r *implOrderRepository) buildFindQuery(filter FindFilter) (bson.M, error) {
+func (r *implOrderRepository) buildFindQuery(filter FindFilter) bson.M {
 	ft := bson.M{}
 	ft = mongo.BuildQueryWithSoftDelete(ft)
 
@@ -13,9 +13,19 @@ func (r *implOrderRepository) buildFindQuery(filter FindFilter) (bson.M, error) 
 		ft["user_id"] = filter.UserID
 	}
 
-	if filter.Status != "" {
+	if filter.Status != nil {
 		ft["status"] = filter.Status
 	}
 
-	return ft, nil
+	return ft
+}
+
+func (r *implOrderRepository) buildFindOneQuery(opt FindOneOrderOptions) bson.M {
+	ft := r.buildFindQuery(opt.FindFilter)
+
+	if opt.ID != "" {
+		ft["_id"] = opt.ID
+	}
+
+	return ft
 }

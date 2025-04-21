@@ -14,9 +14,14 @@ type CreateOrderOptions struct {
 
 type FindFilter struct {
 	UserID string
-	Status models.OrderStatus
+	Status *models.OrderStatus
 }
 
 type FindManyOrderOptions struct {
 	FindFilter
+}
+
+type FindOneOrderOptions struct {
+	FindFilter
+	ID string
 }

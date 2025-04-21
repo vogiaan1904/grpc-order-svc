@@ -16,8 +16,8 @@ type MongoConfig struct {
 }
 
 type GrpcMicroserviceConfig struct {
-	AuthServiceAddress    string `env:"AUTH_SERVICE_ADDRESS" envDefault:"localhost:50051"`
-	ProductServiceAddress string `env:"PRODUCT_SERVICE_ADDRESS" envDefault:"localhost:50053"`
+	AuthSvcAddr    string `env:"AUTH_SERVICE_ADDRESS" envDefault:"localhost:50051"`
+	ProductSvcAddr string `env:"PRODUCT_SERVICE_ADDRESS" envDefault:"localhost:50053"`
 }
 
 func Load() (*Config, error) {

@@ -25,25 +25,28 @@ const (
 type OrderStatus int32
 
 const (
-	OrderStatus_PENDING    OrderStatus = 0
+	OrderStatus_DEFAULT    OrderStatus = 0
 	OrderStatus_PROCESSING OrderStatus = 1
 	OrderStatus_COMPLETED  OrderStatus = 2
 	OrderStatus_CANCELLED  OrderStatus = 3
+	OrderStatus_PENDING    OrderStatus = 4
 )
 
 // Enum value maps for OrderStatus.
 var (
 	OrderStatus_name = map[int32]string{
-		0: "PENDING",
+		0: "DEFAULT",
 		1: "PROCESSING",
 		2: "COMPLETED",
 		3: "CANCELLED",
+		4: "PENDING",
 	}
 	OrderStatus_value = map[string]int32{
-		"PENDING":    0,
+		"DEFAULT":    0,
 		"PROCESSING": 1,
 		"COMPLETED":  2,
 		"CANCELLED":  3,
+		"PENDING":    4,
 	}
 )
 
@@ -79,9 +82,9 @@ type OrderData struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ProductId     string                 `protobuf:"bytes,2,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
 	ProductName   string                 `protobuf:"bytes,3,opt,name=product_name,json=productName,proto3" json:"product_name,omitempty"`
-	ProductPrice  float32                `protobuf:"fixed32,4,opt,name=product_price,json=productPrice,proto3" json:"product_price,omitempty"`
+	ProductPrice  float64                `protobuf:"fixed64,4,opt,name=product_price,json=productPrice,proto3" json:"product_price,omitempty"`
 	Quantity      int32                  `protobuf:"varint,5,opt,name=quantity,proto3" json:"quantity,omitempty"`
-	TotalAmount   float32                `protobuf:"fixed32,6,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	TotalAmount   float64                `protobuf:"fixed64,6,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
 	UserId        string                 `protobuf:"bytes,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Status        OrderStatus            `protobuf:"varint,8,opt,name=status,proto3,enum=order.OrderStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -139,7 +142,7 @@ func (x *OrderData) GetProductName() string {
 	return ""
 }
 
-func (x *OrderData) GetProductPrice() float32 {
+func (x *OrderData) GetProductPrice() float64 {
 	if x != nil {
 		return x.ProductPrice
 	}
@@ -153,7 +156,7 @@ func (x *OrderData) GetQuantity() int32 {
 	return 0
 }
 
-func (x *OrderData) GetTotalAmount() float32 {
+func (x *OrderData) GetTotalAmount() float64 {
 	if x != nil {
 		return x.TotalAmount
 	}
@@ -171,33 +174,32 @@ func (x *OrderData) GetStatus() OrderStatus {
 	if x != nil {
 		return x.Status
 	}
-	return OrderStatus_PENDING
+	return OrderStatus_DEFAULT
 }
 
-type CreateOrderRequest struct {
+type CreateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProductId     string                 `protobuf:"bytes,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
 	Quantity      int32                  `protobuf:"varint,2,opt,name=quantity,proto3" json:"quantity,omitempty"`
-	TotalAmount   float32                `protobuf:"fixed32,3,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
 	UserId        string                 `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateOrderRequest) Reset() {
-	*x = CreateOrderRequest{}
+func (x *CreateRequest) Reset() {
+	*x = CreateRequest{}
 	mi := &file_order_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateOrderRequest) String() string {
+func (x *CreateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateOrderRequest) ProtoMessage() {}
+func (*CreateRequest) ProtoMessage() {}
 
-func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_order_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -209,33 +211,26 @@ func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateOrderRequest.ProtoReflect.Descriptor instead.
-func (*CreateOrderRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateRequest.ProtoReflect.Descriptor instead.
+func (*CreateRequest) Descriptor() ([]byte, []int) {
 	return file_order_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateOrderRequest) GetProductId() string {
+func (x *CreateRequest) GetProductId() string {
 	if x != nil {
 		return x.ProductId
 	}
 	return ""
 }
 
-func (x *CreateOrderRequest) GetQuantity() int32 {
+func (x *CreateRequest) GetQuantity() int32 {
 	if x != nil {
 		return x.Quantity
 	}
 	return 0
 }
 
-func (x *CreateOrderRequest) GetTotalAmount() float32 {
-	if x != nil {
-		return x.TotalAmount
-	}
-	return 0
-}
-
-func (x *CreateOrderRequest) GetUserId() string {
+func (x *CreateRequest) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
@@ -381,7 +376,7 @@ func (x *FindManyRequest) GetStatus() OrderStatus {
 	if x != nil {
 		return x.Status
 	}
-	return OrderStatus_PENDING
+	return OrderStatus_DEFAULT
 }
 
 type FindManyResponse struct {
@@ -438,16 +433,15 @@ const file_order_proto_rawDesc = "" +
 	"\n" +
 	"product_id\x18\x02 \x01(\tR\tproductId\x12!\n" +
 	"\fproduct_name\x18\x03 \x01(\tR\vproductName\x12#\n" +
-	"\rproduct_price\x18\x04 \x01(\x02R\fproductPrice\x12\x1a\n" +
+	"\rproduct_price\x18\x04 \x01(\x01R\fproductPrice\x12\x1a\n" +
 	"\bquantity\x18\x05 \x01(\x05R\bquantity\x12!\n" +
-	"\ftotal_amount\x18\x06 \x01(\x02R\vtotalAmount\x12\x17\n" +
+	"\ftotal_amount\x18\x06 \x01(\x01R\vtotalAmount\x12\x17\n" +
 	"\auser_id\x18\a \x01(\tR\x06userId\x12*\n" +
-	"\x06status\x18\b \x01(\x0e2\x12.order.OrderStatusR\x06status\"\x8b\x01\n" +
-	"\x12CreateOrderRequest\x12\x1d\n" +
+	"\x06status\x18\b \x01(\x0e2\x12.order.OrderStatusR\x06status\"c\n" +
+	"\rCreateRequest\x12\x1d\n" +
 	"\n" +
 	"product_id\x18\x01 \x01(\tR\tproductId\x12\x1a\n" +
-	"\bquantity\x18\x02 \x01(\x05R\bquantity\x12!\n" +
-	"\ftotal_amount\x18\x03 \x01(\x02R\vtotalAmount\x12\x17\n" +
+	"\bquantity\x18\x02 \x01(\x05R\bquantity\x12\x17\n" +
 	"\auser_id\x18\x04 \x01(\tR\x06userId\" \n" +
 	"\x0eFindOneRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"9\n" +
@@ -457,16 +451,18 @@ const file_order_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12*\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\"<\n" +
 	"\x10FindManyResponse\x12(\n" +
-	"\x06orders\x18\x03 \x03(\v2\x10.order.OrderDataR\x06orders*H\n" +
+	"\x06orders\x18\x03 \x03(\v2\x10.order.OrderDataR\x06orders*U\n" +
 	"\vOrderStatus\x12\v\n" +
-	"\aPENDING\x10\x00\x12\x0e\n" +
+	"\aDEFAULT\x10\x00\x12\x0e\n" +
 	"\n" +
 	"PROCESSING\x10\x01\x12\r\n" +
 	"\tCOMPLETED\x10\x02\x12\r\n" +
-	"\tCANCELLED\x10\x032\x8e\x01\n" +
-	"\fOrderService\x12B\n" +
-	"\vCreateOrder\x12\x19.order.CreateOrderRequest\x1a\x16.google.protobuf.Empty\"\x00\x12:\n" +
-	"\aFindOne\x12\x15.order.FindOneRequest\x1a\x16.order.FindOneResponse\"\x00BIZGgithub.com/vogiaan1904/e-commerce-grpc-nest-proto/protogen/golang/orderb\x06proto3"
+	"\tCANCELLED\x10\x03\x12\v\n" +
+	"\aPENDING\x10\x042\xc8\x01\n" +
+	"\fOrderService\x12=\n" +
+	"\vCreateOrder\x12\x14.order.CreateRequest\x1a\x16.google.protobuf.Empty\"\x00\x12:\n" +
+	"\aFindOne\x12\x15.order.FindOneRequest\x1a\x16.order.FindOneResponse\"\x00\x12=\n" +
+	"\bFindMany\x12\x16.order.FindManyRequest\x1a\x17.order.FindManyResponse\"\x00BIZGgithub.com/vogiaan1904/e-commerce-grpc-nest-proto/protogen/golang/orderb\x06proto3"
 
 var (
 	file_order_proto_rawDescOnce sync.Once
@@ -483,26 +479,28 @@ func file_order_proto_rawDescGZIP() []byte {
 var file_order_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_order_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_order_proto_goTypes = []any{
-	(OrderStatus)(0),           // 0: order.OrderStatus
-	(*OrderData)(nil),          // 1: order.OrderData
-	(*CreateOrderRequest)(nil), // 2: order.CreateOrderRequest
-	(*FindOneRequest)(nil),     // 3: order.FindOneRequest
-	(*FindOneResponse)(nil),    // 4: order.FindOneResponse
-	(*FindManyRequest)(nil),    // 5: order.FindManyRequest
-	(*FindManyResponse)(nil),   // 6: order.FindManyResponse
-	(*emptypb.Empty)(nil),      // 7: google.protobuf.Empty
+	(OrderStatus)(0),         // 0: order.OrderStatus
+	(*OrderData)(nil),        // 1: order.OrderData
+	(*CreateRequest)(nil),    // 2: order.CreateRequest
+	(*FindOneRequest)(nil),   // 3: order.FindOneRequest
+	(*FindOneResponse)(nil),  // 4: order.FindOneResponse
+	(*FindManyRequest)(nil),  // 5: order.FindManyRequest
+	(*FindManyResponse)(nil), // 6: order.FindManyResponse
+	(*emptypb.Empty)(nil),    // 7: google.protobuf.Empty
 }
 var file_order_proto_depIdxs = []int32{
 	0, // 0: order.OrderData.status:type_name -> order.OrderStatus
 	1, // 1: order.FindOneResponse.order:type_name -> order.OrderData
 	0, // 2: order.FindManyRequest.status:type_name -> order.OrderStatus
 	1, // 3: order.FindManyResponse.orders:type_name -> order.OrderData
-	2, // 4: order.OrderService.CreateOrder:input_type -> order.CreateOrderRequest
+	2, // 4: order.OrderService.CreateOrder:input_type -> order.CreateRequest
 	3, // 5: order.OrderService.FindOne:input_type -> order.FindOneRequest
-	7, // 6: order.OrderService.CreateOrder:output_type -> google.protobuf.Empty
-	4, // 7: order.OrderService.FindOne:output_type -> order.FindOneResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
+	5, // 6: order.OrderService.FindMany:input_type -> order.FindManyRequest
+	7, // 7: order.OrderService.CreateOrder:output_type -> google.protobuf.Empty
+	4, // 8: order.OrderService.FindOne:output_type -> order.FindOneResponse
+	6, // 9: order.OrderService.FindMany:output_type -> order.FindManyResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
 	4, // [4:4] is the sub-list for extension extendee
 	0, // [0:4] is the sub-list for field type_name
