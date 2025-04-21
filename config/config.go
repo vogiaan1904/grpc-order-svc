@@ -1,6 +1,9 @@
 package config
 
-import "github.com/caarlos0/env/v9"
+import (
+	"github.com/caarlos0/env/v9"
+	"github.com/joho/godotenv"
+)
 
 type Config struct {
 	Mongo MongoConfig
@@ -9,7 +12,7 @@ type Config struct {
 
 type MongoConfig struct {
 	DatabaseName string `env:"DATABASE_NAME" envDefault:"order_db"`
-	DatabaseUri  string `env:"DATABASE_URI" envDefault:"mongodb://localhost:27017"`
+	DatabaseUri  string `env:"DATABASE_URI" envDefault:"mongodb://localhost:27018"`
 }
 
 type GrpcMicroserviceConfig struct {
@@ -18,6 +21,7 @@ type GrpcMicroserviceConfig struct {
 }
 
 func Load() (*Config, error) {
+	godotenv.Load()
 	cfg := &Config{}
 	err := env.Parse(cfg)
 	if err != nil {

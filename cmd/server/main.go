@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/vogiaan1904/order-svc/config"
 	"github.com/vogiaan1904/order-svc/internal/appconfig/mongo"
@@ -47,10 +50,19 @@ func main() {
 
 	order.RegisterOrderServiceServer(server, orderSvc)
 
-	log.Printf("Starting server on %s", addr)
-	if err := server.Serve(lnr); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 
+	go func() {
+		log.Printf("gRPC server started  on %s", addr)
+		if err := server.Serve(lnr); err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
+	}()
+
+	<-sigCh
+	log.Println("Shutting down gRPC server...")
+
+	server.GracefulStop()
 	log.Println("Server stopped")
 }
