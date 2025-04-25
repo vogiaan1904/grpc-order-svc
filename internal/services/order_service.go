@@ -27,8 +27,10 @@ func NewOrderService(l log.Logger, repo repository.OrderRepository, productSvc p
 	}
 }
 
-func (svc *implOrderService) CreateOrder(ctx context.Context, req *order.CreateRequest) (*emptypb.Empty, error) {
+func (svc *implOrderService) Create(ctx context.Context, req *order.CreateRequest) (*emptypb.Empty, error) {
 	var p *product.ProductData
+
+	// This gRPC client call will be logged by the GrpcClientLoggingInterceptor
 	res, err := svc.productSvc.FindById(ctx, &product.FindByIdRequest{
 		Id: req.ProductId,
 	})
@@ -61,7 +63,13 @@ func (svc *implOrderService) CreateOrder(ctx context.Context, req *order.CreateR
 		return nil, err
 	}
 
-	// Update product stock
+	_, err = svc.productSvc.DecreaseStock(ctx, &product.DecreaseStockRequest{
+		Id:       req.ProductId,
+		Quantity: req.Quantity,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return &emptypb.Empty{}, nil
 }

@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrderServiceClient interface {
-	CreateOrder(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	FindOne(ctx context.Context, in *FindOneRequest, opts ...grpc.CallOption) (*FindOneResponse, error)
 	FindMany(ctx context.Context, in *FindManyRequest, opts ...grpc.CallOption) (*FindManyResponse, error)
 }
@@ -36,9 +36,9 @@ func NewOrderServiceClient(cc grpc.ClientConnInterface) OrderServiceClient {
 	return &orderServiceClient{cc}
 }
 
-func (c *orderServiceClient) CreateOrder(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *orderServiceClient) Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/order.OrderService/CreateOrder", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/order.OrderService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (c *orderServiceClient) FindMany(ctx context.Context, in *FindManyRequest, 
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility
 type OrderServiceServer interface {
-	CreateOrder(context.Context, *CreateRequest) (*emptypb.Empty, error)
+	Create(context.Context, *CreateRequest) (*emptypb.Empty, error)
 	FindOne(context.Context, *FindOneRequest) (*FindOneResponse, error)
 	FindMany(context.Context, *FindManyRequest) (*FindManyResponse, error)
 	mustEmbedUnimplementedOrderServiceServer()
@@ -77,8 +77,8 @@ type OrderServiceServer interface {
 type UnimplementedOrderServiceServer struct {
 }
 
-func (UnimplementedOrderServiceServer) CreateOrder(context.Context, *CreateRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateOrder not implemented")
+func (UnimplementedOrderServiceServer) Create(context.Context, *CreateRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
 func (UnimplementedOrderServiceServer) FindOne(context.Context, *FindOneRequest) (*FindOneResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindOne not implemented")
@@ -99,20 +99,20 @@ func RegisterOrderServiceServer(s grpc.ServiceRegistrar, srv OrderServiceServer)
 	s.RegisterService(&OrderService_ServiceDesc, srv)
 }
 
-func _OrderService_CreateOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrderService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrderServiceServer).CreateOrder(ctx, in)
+		return srv.(OrderServiceServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/order.OrderService/CreateOrder",
+		FullMethod: "/order.OrderService/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServiceServer).CreateOrder(ctx, req.(*CreateRequest))
+		return srv.(OrderServiceServer).Create(ctx, req.(*CreateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -161,8 +161,8 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*OrderServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateOrder",
-			Handler:    _OrderService_CreateOrder_Handler,
+			MethodName: "Create",
+			Handler:    _OrderService_Create_Handler,
 		},
 		{
 			MethodName: "FindOne",

@@ -177,6 +177,7 @@ func (x *OrderData) GetStatus() OrderStatus {
 	return OrderStatus_DEFAULT
 }
 
+// Create
 type CreateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProductId     string                 `protobuf:"bytes,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
@@ -458,9 +459,9 @@ const file_order_proto_rawDesc = "" +
 	"PROCESSING\x10\x01\x12\r\n" +
 	"\tCOMPLETED\x10\x02\x12\r\n" +
 	"\tCANCELLED\x10\x03\x12\v\n" +
-	"\aPENDING\x10\x042\xc8\x01\n" +
-	"\fOrderService\x12=\n" +
-	"\vCreateOrder\x12\x14.order.CreateRequest\x1a\x16.google.protobuf.Empty\"\x00\x12:\n" +
+	"\aPENDING\x10\x042\xc3\x01\n" +
+	"\fOrderService\x128\n" +
+	"\x06Create\x12\x14.order.CreateRequest\x1a\x16.google.protobuf.Empty\"\x00\x12:\n" +
 	"\aFindOne\x12\x15.order.FindOneRequest\x1a\x16.order.FindOneResponse\"\x00\x12=\n" +
 	"\bFindMany\x12\x16.order.FindManyRequest\x1a\x17.order.FindManyResponse\"\x00BIZGgithub.com/vogiaan1904/e-commerce-grpc-nest-proto/protogen/golang/orderb\x06proto3"
 
@@ -493,10 +494,10 @@ var file_order_proto_depIdxs = []int32{
 	1, // 1: order.FindOneResponse.order:type_name -> order.OrderData
 	0, // 2: order.FindManyRequest.status:type_name -> order.OrderStatus
 	1, // 3: order.FindManyResponse.orders:type_name -> order.OrderData
-	2, // 4: order.OrderService.CreateOrder:input_type -> order.CreateRequest
+	2, // 4: order.OrderService.Create:input_type -> order.CreateRequest
 	3, // 5: order.OrderService.FindOne:input_type -> order.FindOneRequest
 	5, // 6: order.OrderService.FindMany:input_type -> order.FindManyRequest
-	7, // 7: order.OrderService.CreateOrder:output_type -> google.protobuf.Empty
+	7, // 7: order.OrderService.Create:output_type -> google.protobuf.Empty
 	4, // 8: order.OrderService.FindOne:output_type -> order.FindOneResponse
 	6, // 9: order.OrderService.FindMany:output_type -> order.FindManyResponse
 	7, // [7:10] is the sub-list for method output_type

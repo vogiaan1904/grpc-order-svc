@@ -19,17 +19,17 @@ import (
 )
 
 func main() {
-	// Initialize logger
-	l := pkgLog.InitializeZapLogger(pkgLog.ZapConfig{
-		Level:    "debug",
-		Encoding: "development",
-		Mode:     "console",
-	})
-
 	cfg, err := config.Load()
 	if err != nil {
 		panic(err)
 	}
+
+	// Initialize logger
+	l := pkgLog.InitializeZapLogger(pkgLog.ZapConfig{
+		Level:    cfg.Log.Level,
+		Encoding: cfg.Log.Encoding,
+		Mode:     cfg.Log.Mode,
+	})
 
 	const addr = "127.0.0.1:50054"
 	lnr, err := net.Listen("tcp", addr)
@@ -46,7 +46,7 @@ func main() {
 	db := mClient.Database(cfg.Mongo.DatabaseName)
 
 	// gRPC clients
-	grpcClients, cleanupGrpc, err := grpcservices.InitGrpcClients(cfg.Grpc.ProductSvcAddr)
+	grpcClients, cleanupGrpc, err := grpcservices.InitGrpcClients(cfg.Grpc.ProductSvcAddr, l, cfg.Log.RedactFields)
 	if err != nil {
 		log.Fatalf("failed to initialize gRPC clients: %v", err)
 	}
