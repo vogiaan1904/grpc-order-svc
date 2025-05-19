@@ -22,7 +22,7 @@ func (r *CreateRequest) Validate() error {
 	}
 	if r.ProductId == "" {
 		return ErrRequiredField
-	}
+	} 
 	if r.Quantity <= 0 {
 		return ErrInvalidInput
 	}

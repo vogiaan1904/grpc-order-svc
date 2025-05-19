@@ -26,6 +26,7 @@ type OrderServiceClient interface {
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	FindOne(ctx context.Context, in *FindOneRequest, opts ...grpc.CallOption) (*FindOneResponse, error)
 	FindMany(ctx context.Context, in *FindManyRequest, opts ...grpc.CallOption) (*FindManyResponse, error)
+	UpdateStatus(ctx context.Context, in *UpdateStatusRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type orderServiceClient struct {
@@ -63,6 +64,15 @@ func (c *orderServiceClient) FindMany(ctx context.Context, in *FindManyRequest, 
 	return out, nil
 }
 
+func (c *orderServiceClient) UpdateStatus(ctx context.Context, in *UpdateStatusRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/order.OrderService/UpdateStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderServiceServer is the server API for OrderService service.
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility
@@ -70,6 +80,7 @@ type OrderServiceServer interface {
 	Create(context.Context, *CreateRequest) (*emptypb.Empty, error)
 	FindOne(context.Context, *FindOneRequest) (*FindOneResponse, error)
 	FindMany(context.Context, *FindManyRequest) (*FindManyResponse, error)
+	UpdateStatus(context.Context, *UpdateStatusRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
 
@@ -85,6 +96,9 @@ func (UnimplementedOrderServiceServer) FindOne(context.Context, *FindOneRequest)
 }
 func (UnimplementedOrderServiceServer) FindMany(context.Context, *FindManyRequest) (*FindManyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindMany not implemented")
+}
+func (UnimplementedOrderServiceServer) UpdateStatus(context.Context, *UpdateStatusRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateStatus not implemented")
 }
 func (UnimplementedOrderServiceServer) mustEmbedUnimplementedOrderServiceServer() {}
 
@@ -153,6 +167,24 @@ func _OrderService_FindMany_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_UpdateStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).UpdateStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderService/UpdateStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).UpdateStatus(ctx, req.(*UpdateStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -171,6 +203,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FindMany",
 			Handler:    _OrderService_FindMany_Handler,
+		},
+		{
+			MethodName: "UpdateStatus",
+			Handler:    _OrderService_UpdateStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
