@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"os"
@@ -12,16 +13,17 @@ import (
 	"github.com/vogiaan1904/order-svc/internal/interceptors"
 	repository "github.com/vogiaan1904/order-svc/internal/repositories"
 	service "github.com/vogiaan1904/order-svc/internal/services"
-	"github.com/vogiaan1904/order-svc/pkg/grpcservices"
+	grpcservices "github.com/vogiaan1904/order-svc/pkg/grpc"
 	pkgLog "github.com/vogiaan1904/order-svc/pkg/log"
 	order "github.com/vogiaan1904/order-svc/protogen/golang/order"
+	"go.temporal.io/sdk/client"
 	"google.golang.org/grpc"
 )
 
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to load config: %v", err)
 	}
 
 	// Initialize logger
@@ -31,29 +33,40 @@ func main() {
 		Mode:     cfg.Log.Mode,
 	})
 
+	// Initialize Temporal Client
+	tCli, err := client.Dial(client.Options{
+		HostPort:  cfg.Temporal.HostPort,
+		Namespace: cfg.Temporal.Namespace,
+	})
+	if err != nil {
+		l.Fatal(context.Background(), "Unable to create Temporal Client", "error", err)
+	}
+	defer tCli.Close()
+	l.Info(context.Background(), "Temporal Client connected.")
+
 	const addr = "127.0.0.1:50054"
 	lnr, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		l.Fatal(context.Background(), "failed to listen", "error", err)
 	}
 
 	// MongoDB connection
-	mClient, err := mongo.Connect(cfg.Mongo.DatabaseUri)
+	mCli, err := mongo.Connect(cfg.Mongo.DatabaseUri)
 	if err != nil {
-		panic(err)
+		l.Fatal(context.Background(), "Failed to connect to MongoDB", "error", err)
 	}
-	defer mongo.Disconnect(mClient)
-	db := mClient.Database(cfg.Mongo.DatabaseName)
+	defer mongo.Disconnect(mCli)
+	db := mCli.Database(cfg.Mongo.DatabaseName)
 
 	// gRPC clients
-	grpcClients, cleanupGrpc, err := grpcservices.InitGrpcClients(cfg.Grpc.ProductSvcAddr, l, cfg.Log.RedactFields)
+	grpcClis, cleanupGrpc, err := grpcservices.InitGrpcClients(cfg.Grpc.ProductSvcAddr, l, cfg.Log.RedactFields)
 	if err != nil {
-		log.Fatalf("failed to initialize gRPC clients: %v", err)
+		l.Fatal(context.Background(), "failed to initialize gRPC clients", "error", err)
 	}
 	defer cleanupGrpc()
 
 	orderRepo := repository.NewOrderRepository(l, db)
-	orderSvc := service.NewOrderService(l, orderRepo, grpcClients.Product)
+	orderSvc := service.NewOrderService(l, orderRepo, grpcClis.Product, tCli)
 
 	// gRPC server
 	server := grpc.NewServer(
@@ -66,15 +79,15 @@ func main() {
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("gRPC server started on %s", addr)
+		l.Info(context.Background(), "gRPC server started", "address", addr)
 		if err := server.Serve(lnr); err != nil {
-			log.Fatalf("failed to serve: %v", err)
+			l.Fatal(context.Background(), "failed to serve gRPC", "error", err)
 		}
 	}()
 
 	<-sigCh
-	log.Println("Shutting down gRPC server...")
+	l.Info(context.Background(), "Shutting down gRPC server...")
 
 	server.GracefulStop()
-	log.Println("Server stopped")
+	l.Info(context.Background(), "Server stopped")
 }

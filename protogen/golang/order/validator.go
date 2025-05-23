@@ -20,11 +20,16 @@ func (r *CreateRequest) Validate() error {
 	if r.UserId == "" {
 		return ErrRequiredField
 	}
-	if r.ProductId == "" {
+	if len(r.Items) == 0 {
 		return ErrRequiredField
-	} 
-	if r.Quantity <= 0 {
-		return ErrInvalidInput
+	}
+	for _, item := range r.Items {
+		if item.ProductId == "" {
+			return ErrRequiredField
+		}
+		if item.Quantity <= 0 {
+			return ErrInvalidInput
+		}
 	}
 
 	return nil

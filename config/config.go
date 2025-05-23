@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Mongo MongoConfig
-	Grpc  GrpcMicroserviceConfig
-	Log   LogConfig
+	Mongo    MongoConfig
+	Grpc     GrpcMicroserviceConfig
+	Log      LogConfig
+	Temporal TemporalConfig
 }
 
 type MongoConfig struct {
@@ -28,6 +29,11 @@ type LogConfig struct {
 	Encoding     string   `env:"LOG_ENCODING" envDefault:"development"`
 	Mode         string   `env:"LOG_MODE" envDefault:"console"`
 	RedactFields []string `env:"LOG_REDACT_FIELDS" envDefault:"password,token,secret"`
+}
+
+type TemporalConfig struct {
+	HostPort  string `env:"TEMPORAL_HOST_PORT" envDefault:"localhost:7233"`
+	Namespace string `env:"TEMPORAL_NAMESPACE" envDefault:"default"`
 }
 
 func Load() (*Config, error) {

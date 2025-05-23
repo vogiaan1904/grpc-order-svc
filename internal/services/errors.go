@@ -10,8 +10,11 @@ var WarnErrors = []error{
 }
 
 var (
-	ErrInvalidInput      = errors.New("invalid input")
-	ErrRequiredField     = errors.New("required field is missing")
-	ErrProductNotFound   = errors.New("product not found")
-	ErrProductOutOfStock = errors.New("product out of stock")
+	ErrInvalidInput           = errors.New("invalid input")
+	ErrRequiredField          = errors.New("required field is missing")
+	ErrProductNotFound        = errors.New("product not found")
+	ErrProductOutOfStock      = errors.New("product out of stock")
+	ErrOrderNotFound          = errors.New("order not found")
+	ErrOrderAlreadyExists     = errors.New("order already exists")
+	ErrInvalidOrderItemNumber = errors.New("invalid order item number")
 )

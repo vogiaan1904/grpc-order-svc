@@ -6,15 +6,12 @@ func (r *implOrderRepository) buildOrderModel(opt CreateOrderOptions) models.Ord
 	now := r.clock()
 
 	return models.Order{
-		ID:           r.db.NewObjectID(),
-		UserID:       opt.UserID,
-		ProductID:    opt.ProductID,
-		ProductName:  opt.ProductName,
-		ProductPrice: opt.ProductPrice,
-		Quantity:     opt.Quantity,
-		TotalAmount:  opt.TotalAmount,
-		Status:       opt.Status,
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:          r.db.NewObjectID(),
+		UserID:      opt.UserID,
+		Items:       opt.Items,
+		TotalAmount: opt.TotalAmount,
+		Status:      opt.Status,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 }

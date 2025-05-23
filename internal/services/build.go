@@ -6,23 +6,21 @@ import (
 	order "github.com/vogiaan1904/order-svc/protogen/golang/order"
 )
 
-func protoOrderStatusToPtr(status order.OrderStatus) *models.OrderStatus {
-	if status == order.OrderStatus_DEFAULT {
-		return nil
-	}
-	str, ok := order.OrderStatus_name[int32(status)]
-	if !ok {
-		return nil
-	}
-	s := models.OrderStatus(str)
-	return &s
-}
-
 func (svc *implOrderService) buildFindOptions(req *order.FindManyRequest) repository.FindManyOrderOptions {
 	return repository.FindManyOrderOptions{
 		FindFilter: repository.FindFilter{
 			UserID: req.UserId,
-			Status: protoOrderStatusToPtr(req.Status),
+			Status: svc.protoOrderStatusToPtr(req.Status),
 		},
+	}
+}
+
+func (svc *implOrderService) buildCreateOptions(req *order.CreateRequest, items []models.OrderItem) repository.CreateOrderOptions {
+
+	// handle build///
+
+	return repository.CreateOrderOptions{
+		UserID: req.UserId,
+		Items:  items,
 	}
 }
