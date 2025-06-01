@@ -687,8 +687,7 @@ type OrderWorkflowParams struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Items         []*OrderItem           `protobuf:"bytes,3,rep,name=items,proto3" json:"items,omitempty"`
-	TotalAmount   float64                `protobuf:"fixed64,4,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	TotalAmount   float64                `protobuf:"fixed64,3,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -735,13 +734,6 @@ func (x *OrderWorkflowParams) GetUserId() string {
 		return x.UserId
 	}
 	return ""
-}
-
-func (x *OrderWorkflowParams) GetItems() []*OrderItem {
-	if x != nil {
-		return x.Items
-	}
-	return nil
 }
 
 func (x *OrderWorkflowParams) GetTotalAmount() float64 {
@@ -851,12 +843,11 @@ const file_order_proto_rawDesc = "" +
 	"\x06orders\x18\x03 \x03(\v2\x10.order.OrderDataR\x06orders\"Q\n" +
 	"\x13UpdateStatusRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12*\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\"\x94\x01\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\"l\n" +
 	"\x13OrderWorkflowParams\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12&\n" +
-	"\x05items\x18\x03 \x03(\v2\x10.order.OrderItemR\x05items\x12!\n" +
-	"\ftotal_amount\x18\x04 \x01(\x01R\vtotalAmount\"m\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12!\n" +
+	"\ftotal_amount\x18\x03 \x01(\x01R\vtotalAmount\"m\n" +
 	"\x13OrderWorkflowResult\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12#\n" +
@@ -920,20 +911,19 @@ var file_order_proto_depIdxs = []int32{
 	0,  // 4: order.FindManyRequest.status:type_name -> order.OrderStatus
 	2,  // 5: order.FindManyResponse.orders:type_name -> order.OrderData
 	0,  // 6: order.UpdateStatusRequest.status:type_name -> order.OrderStatus
-	4,  // 7: order.OrderWorkflowParams.items:type_name -> order.OrderItem
-	5,  // 8: order.OrderService.Create:input_type -> order.CreateRequest
-	7,  // 9: order.OrderService.FindOne:input_type -> order.FindOneRequest
-	9,  // 10: order.OrderService.FindMany:input_type -> order.FindManyRequest
-	11, // 11: order.OrderService.UpdateStatus:input_type -> order.UpdateStatusRequest
-	6,  // 12: order.OrderService.Create:output_type -> order.CreateResponse
-	8,  // 13: order.OrderService.FindOne:output_type -> order.FindOneResponse
-	10, // 14: order.OrderService.FindMany:output_type -> order.FindManyResponse
-	14, // 15: order.OrderService.UpdateStatus:output_type -> google.protobuf.Empty
-	12, // [12:16] is the sub-list for method output_type
-	8,  // [8:12] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	5,  // 7: order.OrderService.Create:input_type -> order.CreateRequest
+	7,  // 8: order.OrderService.FindOne:input_type -> order.FindOneRequest
+	9,  // 9: order.OrderService.FindMany:input_type -> order.FindManyRequest
+	11, // 10: order.OrderService.UpdateStatus:input_type -> order.UpdateStatusRequest
+	6,  // 11: order.OrderService.Create:output_type -> order.CreateResponse
+	8,  // 12: order.OrderService.FindOne:output_type -> order.FindOneResponse
+	10, // 13: order.OrderService.FindMany:output_type -> order.FindManyResponse
+	14, // 14: order.OrderService.UpdateStatus:output_type -> google.protobuf.Empty
+	11, // [11:15] is the sub-list for method output_type
+	7,  // [7:11] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_order_proto_init() }

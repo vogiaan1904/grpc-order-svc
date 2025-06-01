@@ -25,3 +25,5 @@ mongo-data/
 
 # env file
 .env
+
+.DS_Store
