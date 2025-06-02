@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/vogiaan1904/order-svc/internal/models"
 	repository "github.com/vogiaan1904/order-svc/internal/repositories"
 	"github.com/vogiaan1904/order-svc/pkg/log"
 	"github.com/vogiaan1904/order-svc/pkg/mongo"
 	order "github.com/vogiaan1904/order-svc/protogen/golang/order"
 	"github.com/vogiaan1904/order-svc/protogen/golang/product"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"go.temporal.io/sdk/client"
 	"google.golang.org/grpc/codes"
@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-const OrderProcessingTaskQueue = "ORDER_PROCESSING_TASK_QUEUE"
+const PrePaymentOrderTaskQueue = "PRE_PAYMENT_ORDER_TASK_QUEUE"
 
 type implOrderService struct {
 	l              log.Logger
@@ -36,15 +36,7 @@ func NewOrderService(l log.Logger, repo repository.OrderRepository, productSvc p
 	}
 }
 
-type OrderWorkflowParams struct {
-	OrderID     string
-	UserID      string
-	Items       []*order.OrderItem
-	TotalAmount float64
-}
-
 func (svc *implOrderService) Create(ctx context.Context, req *order.CreateRequest) (*order.CreateResponse, error) {
-	svc.l.Infof(ctx, "Create order request received: UserID: %s, Items: %d", req.UserId, len(req.Items))
 	pIDs := make([]string, len(req.Items))
 	for _, item := range req.Items {
 		pIDs = append(pIDs, item.ProductId)
@@ -61,57 +53,76 @@ func (svc *implOrderService) Create(ctx context.Context, req *order.CreateReques
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	oID := primitive.NewObjectID().Hex()
-	workflowID := "order_" + oID
-
-	oItems := make([]*order.OrderItem, len(pIDs))
+	oItems := make([]models.OrderItem, len(pIDs))
 	total := 0.0
 	for i, p := range resp.Products {
 		iTotal := req.Items[i].Quantity * int32(p.Price)
 		total += float64(iTotal)
-		oItems[i] = &order.OrderItem{
-			ProductId:    p.Id,
+		oItems[i] = models.OrderItem{
+			ProductID:    p.Id,
 			Quantity:     req.Items[i].Quantity,
 			ProductPrice: p.Price,
 			ProductName:  p.Name,
-			TotalAmount:  float64(iTotal),
 		}
 	}
 
-	workflowParams := OrderWorkflowParams{
-		OrderID:     oID,
+	code := svc.generateOrderCode()
+
+	_, err = svc.repo.CreateOrder(ctx, repository.CreateOrderOptions{
+		Code:        code,
 		UserID:      req.UserId,
 		Items:       oItems,
 		TotalAmount: float64(total),
+		Status:      models.OrderStatusPending,
+	})
+	if err != nil {
+		svc.l.Errorf(ctx, "Failed to create order: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to create order: %v", err)
 	}
 
-	workflowOptions := client.StartWorkflowOptions{
-		ID:                       workflowID,
-		TaskQueue:                OrderProcessingTaskQueue,
+	wfID := "order_pre_payment_" + code
+	wfParams := OrderWorkflowParams{
+		OrderCode:   code,
+		UserId:      req.UserId,
+		TotalAmount: float64(total),
+	}
+
+	wfOpts := client.StartWorkflowOptions{
+		ID:                       wfID,
+		TaskQueue:                PrePaymentOrderTaskQueue,
 		WorkflowExecutionTimeout: time.Hour * 24,
 		WorkflowRunTimeout:       time.Hour * 24,
 		WorkflowTaskTimeout:      time.Minute * 1,
 	}
 
-	svc.l.Infof(ctx, "Starting OrderProcessingWorkflow with ID: %s", workflowID)
-	we, err := svc.temporalClient.ExecuteWorkflow(ctx, workflowOptions, "OrderProcessingWorkflow", workflowParams)
+	svc.l.Infof(ctx, "Starting ProcessPrePaymentOrder with ID: %s", wfID)
+	we, err := svc.temporalClient.ExecuteWorkflow(ctx, wfOpts, "ProcessPrePaymentOrder", &wfParams)
 	if err != nil {
-		svc.l.Errorf(ctx, "Failed to start OrderProcessingWorkflow: %v", err)
+		svc.l.Errorf(ctx, "Failed to start ProcessPrePaymentOrder: %v", err)
 		return nil, status.Errorf(codes.Internal, "failed to initiate order processing: %v", err)
 	}
 
-	svc.l.Infof(ctx, "OrderProcessingWorkflow started successfully. WorkflowID: %s, RunID: %s", we.GetID(), we.GetRunID())
+	var paymentUrl string
+	err = we.Get(ctx, &paymentUrl)
+	if err != nil {
+		svc.l.Errorf(ctx, "Failed to get payment URL from workflow: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to get payment URL: %v", err)
+	}
 
+	svc.l.Infof(ctx, "OrderProcessingWorkflow started successfully. WorkflowID: %s, RunID: %s", we.GetID(), we.GetRunID())
 	return &order.CreateResponse{
-		OrderId:    oID,
+		OrderCode:  code,
 		WorkflowId: we.GetID(),
+		PaymentUrl: paymentUrl,
 	}, nil
 }
 
 func (svc *implOrderService) FindOne(ctx context.Context, req *order.FindOneRequest) (*order.FindOneResponse, error) {
 	o, err := svc.repo.FindOneOrder(ctx, repository.FindOneOrderOptions{
-		ID:         req.Id,
-		FindFilter: repository.FindFilter{},
+		ID: req.GetId(),
+		FindFilter: repository.FindFilter{
+			Code: req.GetCode(),
+		},
 	})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -164,5 +175,26 @@ func (svc *implOrderService) FindMany(ctx context.Context, req *order.FindManyRe
 }
 
 func (svc *implOrderService) UpdateStatus(ctx context.Context, req *order.UpdateStatusRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateStatus not implemented")
+	o, err := svc.repo.FindOneOrder(ctx, repository.FindOneOrderOptions{
+		FindFilter: repository.FindFilter{
+			Code: req.GetCode(),
+		},
+	})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			svc.l.Warnf(ctx, "OrderSvc.UpdateStatus: %v", err)
+			return nil, status.Errorf(codes.InvalidArgument, ErrOrderNotFound.Error())
+		}
+		svc.l.Errorf(ctx, "OrderSvc.UpdateStatus: %v", err)
+		return nil, err
+	}
+
+	o.Status = models.OrderStatus(req.Status)
+	err = svc.repo.UpdateOrder(ctx, o)
+	if err != nil {
+		svc.l.Errorf(ctx, "OrderSvc.UpdateStatus: %v", err)
+		return nil, err
+	}
+
+	return &emptypb.Empty{}, nil
 }

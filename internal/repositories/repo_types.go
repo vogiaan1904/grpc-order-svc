@@ -1,8 +1,11 @@
 package repository
 
-import "github.com/vogiaan1904/order-svc/internal/models"
+import (
+	"github.com/vogiaan1904/order-svc/internal/models"
+)
 
 type CreateOrderOptions struct {
+	Code        string
 	UserID      string
 	Items       []models.OrderItem
 	TotalAmount float64
@@ -10,6 +13,7 @@ type CreateOrderOptions struct {
 }
 
 type FindFilter struct {
+	Code   string
 	UserID string
 	Status *models.OrderStatus
 }

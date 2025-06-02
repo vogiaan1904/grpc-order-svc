@@ -27,5 +27,9 @@ func (r *implOrderRepository) buildFindOneQuery(opt FindOneOrderOptions) bson.M 
 		ft["_id"] = opt.ID
 	}
 
+	if opt.Code != "" {
+		ft["code"] = opt.Code
+	}
+
 	return ft
 }

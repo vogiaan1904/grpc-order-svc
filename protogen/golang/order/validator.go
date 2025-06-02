@@ -36,10 +36,10 @@ func (r *CreateRequest) Validate() error {
 }
 
 func (r *FindOneRequest) Validate() error {
-	if r.Id == "" {
+	if r.GetId() == "" && r.GetCode() == "" {
 		return ErrRequiredField
 	}
-	if _, err := primitive.ObjectIDFromHex(r.Id); err != nil {
+	if _, err := primitive.ObjectIDFromHex(r.GetId()); err != nil {
 		return ErrInvalidInput
 	}
 

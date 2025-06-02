@@ -86,3 +86,15 @@ func (r *implOrderRepository) FindOneOrder(ctx context.Context, opt FindOneOrder
 
 	return o, nil
 }
+
+func (r *implOrderRepository) UpdateOrder(ctx context.Context, o models.Order) error {
+	col := r.getCollection()
+
+	_, err := col.UpdateOne(ctx, bson.M{"_id": o.ID}, bson.M{"$set": o})
+	if err != nil {
+		r.l.Errorf(ctx, "Error UpdateOne: %v", err)
+		return err
+	}
+
+	return nil
+}

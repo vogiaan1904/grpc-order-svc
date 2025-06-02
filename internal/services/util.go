@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/vogiaan1904/order-svc/internal/models"
 	order "github.com/vogiaan1904/order-svc/protogen/golang/order"
@@ -37,8 +40,8 @@ func (svc *implOrderService) validateOrderItems(ctx context.Context, req *order.
 			svc.l.Warnf(ctx, "orderSvc.Create: Product %v not found", item.ProductId)
 			return ErrProductNotFound
 		}
-		if p.Stock < item.Quantity {
-			svc.l.Warnf(ctx, "orderSvc.Create: Product %v does not have enough stock. Requested: %d, Available: %d", item.ProductId, item.Quantity, p.Stock)
+		if p.TotalStock < int32(item.Quantity) {
+			svc.l.Warnf(ctx, "orderSvc.Create: Product %v does not have enough stock. Requested: %d, Available: %d", item.ProductId, item.Quantity, p.TotalStock)
 			return ErrProductOutOfStock
 		}
 	}
@@ -69,4 +72,18 @@ func (svc *implOrderService) toOrderItemResp(items []models.OrderItem) []*order.
 	}
 
 	return oItems
+}
+
+func (svc *implOrderService) generateOrderCode() string {
+	now := time.Now()
+	// Format date as DDMMYYYY
+	dateStr := now.Format("02012006")
+
+	// Generate 8 random digits
+	randomNum := rand.Intn(100000000)
+	// Ensure 8 digits by padding with leading zeros if necessary
+	randomStr := fmt.Sprintf("%08d", randomNum)
+
+	// Combine date and random number
+	return dateStr + randomStr
 }

@@ -17,6 +17,7 @@ const (
 
 type Order struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
+	Code        string             `bson:"code"`
 	UserID      string             `bson:"user_id"`
 	Items       []OrderItem        `bson:"items"`
 	TotalAmount float64            `bson:"total_price"`
