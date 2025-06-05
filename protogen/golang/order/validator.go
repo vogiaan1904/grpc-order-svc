@@ -39,8 +39,11 @@ func (r *FindOneRequest) Validate() error {
 	if r.GetId() == "" && r.GetCode() == "" {
 		return ErrRequiredField
 	}
-	if _, err := primitive.ObjectIDFromHex(r.GetId()); err != nil {
-		return ErrInvalidInput
+
+	if r.GetId() != "" {
+		if _, err := primitive.ObjectIDFromHex(r.GetId()); err != nil {
+			return ErrInvalidInput
+		}
 	}
 
 	return nil

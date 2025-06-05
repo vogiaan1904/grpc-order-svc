@@ -96,7 +96,7 @@ func (svc *implOrderService) Create(ctx context.Context, req *order.CreateReques
 	}
 
 	svc.l.Infof(ctx, "Starting ProcessPrePaymentOrder with ID: %s", wfID)
-	we, err := svc.temporalClient.ExecuteWorkflow(ctx, wfOpts, "ProcessPrePaymentOrder", &wfParams)
+	we, err := svc.temporalClient.ExecuteWorkflow(ctx, wfOpts, "ProcessPrePaymentOrder", wfParams)
 	if err != nil {
 		svc.l.Errorf(ctx, "Failed to start ProcessPrePaymentOrder: %v", err)
 		return nil, status.Errorf(codes.Internal, "failed to initiate order processing: %v", err)
