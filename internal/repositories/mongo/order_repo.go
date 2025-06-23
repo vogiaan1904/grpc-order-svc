@@ -1,10 +1,11 @@
-package repository
+package mongo
 
 import (
 	"context"
 	"time"
 
 	"github.com/vogiaan1904/order-svc/internal/models"
+	repo "github.com/vogiaan1904/order-svc/internal/repositories"
 	"github.com/vogiaan1904/order-svc/pkg/log"
 	"github.com/vogiaan1904/order-svc/pkg/mongo"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,7 +18,7 @@ type implOrderRepository struct {
 	clock func() time.Time
 }
 
-func NewOrderRepository(l log.Logger, db mongo.Database) OrderRepository {
+func NewOrderRepository(l log.Logger, db mongo.Database) repo.OrderRepository {
 	return &implOrderRepository{
 		l:     l,
 		db:    db,
@@ -33,7 +34,7 @@ func (r *implOrderRepository) getCollection() mongo.Collection {
 	return r.db.Collection(ordersCollection)
 }
 
-func (r *implOrderRepository) CreateOrder(ctx context.Context, opt CreateOrderOptions) (models.Order, error) {
+func (r *implOrderRepository) CreateOrder(ctx context.Context, opt repo.CreateOrderOptions) (models.Order, error) {
 	col := r.getCollection()
 	o := r.buildOrderModel(opt)
 
@@ -46,10 +47,10 @@ func (r *implOrderRepository) CreateOrder(ctx context.Context, opt CreateOrderOp
 	return o, nil
 }
 
-func (r *implOrderRepository) FindManyOrders(ctx context.Context, opt FindManyOrderOptions) ([]models.Order, error) {
+func (r *implOrderRepository) GetOrders(ctx context.Context, opts repo.GetOrdersOptions) ([]models.Order, error) {
 	col := r.getCollection()
 
-	ft := r.buildFindQuery(opt.FindFilter)
+	ft := r.buildFindQuery(opts.GetOrdersFilter)
 	r.l.Debugf(ctx, "filter: %-v", ft)
 	cur, err := col.Find(ctx, ft, options.Find().
 		SetSort(bson.D{
@@ -72,7 +73,7 @@ func (r *implOrderRepository) FindManyOrders(ctx context.Context, opt FindManyOr
 	return os, nil
 }
 
-func (r *implOrderRepository) FindOneOrder(ctx context.Context, opt FindOneOrderOptions) (models.Order, error) {
+func (r *implOrderRepository) FindOneOrder(ctx context.Context, opt repo.FindOneOrderOptions) (models.Order, error) {
 	col := r.getCollection()
 
 	var o models.Order

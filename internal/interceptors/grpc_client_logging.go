@@ -16,7 +16,6 @@ func redact(data interface{}, fields []string) string {
 	if data == nil {
 		return "null"
 	}
-
 	// Convert data to bytes
 	dataBytes, err := json.Marshal(data)
 	if err != nil {

@@ -9,7 +9,7 @@ import (
 )
 
 type validator interface {
-	Validate() error
+	Validate() bool
 }
 
 func ValidationInterceptor(
@@ -19,9 +19,10 @@ func ValidationInterceptor(
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
 	if v, ok := req.(validator); ok {
-		if err := v.Validate(); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "%v", err)
+		if !v.Validate() {
+			return nil, status.Errorf(codes.InvalidArgument, "Bad request")
 		}
 	}
+
 	return handler(ctx, req)
 }

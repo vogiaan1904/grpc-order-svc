@@ -12,17 +12,17 @@ type CreateOrderOptions struct {
 	Status      models.OrderStatus
 }
 
-type FindFilter struct {
+type GetOrdersFilter struct {
 	Code   string
 	UserID string
-	Status *models.OrderStatus
+	Status string
 }
 
-type FindManyOrderOptions struct {
-	FindFilter
+type GetOrdersOptions struct {
+	GetOrdersFilter
 }
 
 type FindOneOrderOptions struct {
-	FindFilter
+	GetOrdersFilter
 	ID string
 }

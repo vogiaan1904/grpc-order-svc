@@ -1,62 +1,72 @@
 package order
 
 import (
-	"errors"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var WarnErrors = []error{
-	ErrInvalidInput,
-	ErrRequiredField,
-}
-
-var (
-	ErrRequiredField = errors.New("required field is missing")
-	ErrInvalidInput  = errors.New("invalid input")
-)
-
-func (r *CreateRequest) Validate() error {
+func (r *CreateRequest) Validate() bool {
 	if r.UserId == "" {
-		return ErrRequiredField
+		return false
 	}
+
 	if len(r.Items) == 0 {
-		return ErrRequiredField
+		return false
 	}
+
 	for _, item := range r.Items {
 		if item.ProductId == "" {
-			return ErrRequiredField
+			return false
 		}
 		if item.Quantity <= 0 {
-			return ErrInvalidInput
+			return false
 		}
 	}
 
-	return nil
+	return true
 }
 
-func (r *FindOneRequest) Validate() error {
+func (r *FindOneRequest) Validate() bool {
 	if r.GetId() == "" && r.GetCode() == "" {
-		return ErrRequiredField
+		return false
 	}
 
 	if r.GetId() != "" {
 		if _, err := primitive.ObjectIDFromHex(r.GetId()); err != nil {
-			return ErrInvalidInput
+			return false
 		}
 	}
 
-	return nil
+	return true
 }
 
 func IsValidOrderStatus(status OrderStatus) bool {
 	_, ok := OrderStatus_name[int32(status)]
+
 	return ok
 }
 
-func (r *FindManyRequest) Validate() error {
-	if !IsValidOrderStatus(r.Status) && r.Status != 0 {
-		return ErrInvalidInput
+func (r *FindManyRequest) Validate() bool {
+	if r.Status != OrderStatus_ORDER_STATUS_UNSPECIFIED {
+		if !IsValidOrderStatus(r.Status) {
+			return false
+		}
 	}
-	return nil
+
+	if r.UserId == "" {
+		return false
+	}
+
+	return true
+}
+
+func (r *UpdateStatusRequest) Validate() bool {
+	if r.GetId() == "" && r.GetCode() == "" {
+		return false
+	}
+
+	if r.Status == OrderStatus_ORDER_STATUS_UNSPECIFIED {
+		return false
+	}
+
+	return true
 }
