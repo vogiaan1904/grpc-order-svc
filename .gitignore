@@ -23,7 +23,10 @@ go.work.sum
 # mongo data
 mongo-data/
 
+pkg/
+
 # env file
 .env
+.env.dev
 
 .DS_Store
