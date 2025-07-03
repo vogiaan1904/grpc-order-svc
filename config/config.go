@@ -2,6 +2,7 @@ package config
 
 import (
 	"strings"
+	"time"
 
 	"github.com/caarlos0/env/v9"
 	"github.com/joho/godotenv"
@@ -12,6 +13,28 @@ type Config struct {
 	Grpc     GrpcMicroserviceConfig
 	Log      LogConfig
 	Temporal TemporalConfig
+	Server   Server
+	Http     Http
+}
+
+type Server struct {
+	Port              string        `env:"PORT" envDefault:"50054"`
+	Development       bool          `env:"DEVELOPMENT" envDefault:"true"`
+	Timeout           time.Duration `env:"TIMEOUT" envDefault:"10s"`
+	ReadTimeout       time.Duration `env:"READ_TIMEOUT" envDefault:"10s"`
+	WriteTimeout      time.Duration `env:"WRITE_TIMEOUT" envDefault:"10s"`
+	MaxConnectionIdle time.Duration `env:"MAX_CONNECTION_IDLE" envDefault:"10s"`
+	MaxConnectionAge  time.Duration `env:"MAX_CONNECTION_AGE" envDefault:"10s"`
+}
+
+type Http struct {
+	Port              string        `env:"PORT" envDefault:"50054"`
+	PprofPort         string        `env:"PPROF_PORT" envDefault:"50055"`
+	Timeout           time.Duration `env:"TIMEOUT" envDefault:"10s"`
+	ReadTimeout       time.Duration `env:"READ_TIMEOUT" envDefault:"10s"`
+	WriteTimeout      time.Duration `env:"WRITE_TIMEOUT" envDefault:"10s"`
+	CookieLifeTime    int           `env:"COOKIE_LIFETIME" envDefault:"10"`
+	SessionCookieName string        `env:"SESSION_COOKIE_NAME" envDefault:"session"`
 }
 
 type MongoConfig struct {

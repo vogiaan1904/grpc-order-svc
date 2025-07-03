@@ -1,0 +1,45 @@
+# Binaries and build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files
+docker-compose*.yml
+Dockerfile*
+
+# Database data
+mongo-data/
+
+# Git files (except .gitmodules needed for submodules)
+.git/
+!.gitmodules
+
+# Documentation
+README.md
+*.md
+
+# Logs
+*.log 

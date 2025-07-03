@@ -1,4 +1,4 @@
-package service
+package services
 
 import (
 	"github.com/vogiaan1904/order-svc/internal/models"

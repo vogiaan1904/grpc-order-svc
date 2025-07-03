@@ -1,7 +1,6 @@
-package grpcservices
+package grpc
 
 import (
-	"context"
 	"log"
 
 	"github.com/vogiaan1904/order-svc/internal/interceptors"
@@ -11,23 +10,18 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type GrpcClients struct {
+type Clients struct {
 	Product product.ProductServiceClient
 }
 
 type cleanupFunc func()
 
-func InitGrpcClients(productAddr string, logger pkgLog.Logger, redactedFields []string) (*GrpcClients, cleanupFunc, error) {
-	// Create a background context for logging
-	ctx := context.Background()
-
+func InitClients(productAddr string, logger pkgLog.Logger, redactedFields []string) (*Clients, cleanupFunc, error) {
 	var cleanupFuncs []cleanupFunc
-	clients := &GrpcClients{}
+	clients := &Clients{}
 
-	// Create interceptor with logger and redacted fields
 	loggingInterceptor := interceptors.GrpcClientLoggingInterceptor(logger, redactedFields)
 
-	// Create client connection with the interceptor
 	productConn, err := grpc.NewClient(
 		productAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -42,7 +36,7 @@ func InitGrpcClients(productAddr string, logger pkgLog.Logger, redactedFields []
 
 	cleanupFuncs = append(cleanupFuncs, func() {
 		if err := productConn.Close(); err != nil {
-			log.Printf("failed to close product gRPC connection: %v", err)
+			log.Printf("Failed to close product gRPC connection: %v", err)
 		}
 	})
 
@@ -50,10 +44,10 @@ func InitGrpcClients(productAddr string, logger pkgLog.Logger, redactedFields []
 		for _, fn := range cleanupFuncs {
 			fn()
 		}
-		logger.Info(ctx, "gRPC clients cleaned up")
+		log.Println("gRPC clients cleaned up.")
 	}
 
-	logger.Info(ctx, "gRPC clients initialized")
+	log.Println("gRPC clients initialized!")
 
 	return clients, cleanupFunc, nil
 }

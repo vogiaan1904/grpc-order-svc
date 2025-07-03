@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/vogiaan1904/order-svc/internal/models"
-	services "github.com/vogiaan1904/order-svc/internal/services"
+	"github.com/vogiaan1904/order-svc/internal/services"
 	"github.com/vogiaan1904/order-svc/pkg/log"
 	orderpb "github.com/vogiaan1904/order-svc/protogen/golang/order"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -20,7 +20,7 @@ func NewOrderService(l log.Logger, svc services.OrderService) orderpb.OrderServi
 	return &orderService{l: l, svc: svc}
 }
 
-func (h *orderService) Create(ctx context.Context, req *orderpb.CreateRequest) (*orderpb.CreateResponse, error) {
+func (s *orderService) Create(ctx context.Context, req *orderpb.CreateRequest) (*orderpb.CreateResponse, error) {
 	items := make([]models.OrderItem, len(req.Items))
 	for i, item := range req.Items {
 		items[i] = models.OrderItem{
@@ -29,7 +29,7 @@ func (h *orderService) Create(ctx context.Context, req *orderpb.CreateRequest) (
 		}
 	}
 
-	out, err := h.svc.CreateOrder(ctx, services.CreateOrderInput{
+	out, err := s.svc.CreateOrder(ctx, services.CreateOrderInput{
 		UserID: req.UserId,
 		Items:  items,
 	})

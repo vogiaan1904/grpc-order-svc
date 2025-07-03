@@ -5,6 +5,7 @@ go 1.23.6
 require (
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/joho/godotenv v1.5.1
+	github.com/pkg/errors v0.8.1
 	go.mongodb.org/mongo-driver v1.17.3
 	go.temporal.io/sdk v1.34.0
 	go.uber.org/zap v1.27.0
