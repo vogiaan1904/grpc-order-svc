@@ -1,47 +1,61 @@
-# Build stage
-FROM golang:1.23.8-alpine AS builder
+# syntax=docker/dockerfile:1
 
-# Install ca-certificates (no need for git anymore)
-RUN apk --no-cache add ca-certificates
+# =========================
+# STEP 1 - BUILD
+# =========================
+FROM golang:1.23.8-alpine AS builder
 
 WORKDIR /app
 
-# Copy go mod files first for better caching
+# Copy go mod files and download dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source code and pre-generated proto files
+# Copy the source code into the container
 COPY . .
 
 # Build the Go binary
-RUN CGO_ENABLED=0 GOOS=linux go build \
-    -a -installsuffix cgo \
-    -ldflags="-w -s" \
-    -o main ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags="-w -s" -o main ./cmd/server
 
-# Production stage
-FROM alpine:latest AS production
+# =========================
+# STEP 2 - DEPLOY
+# =========================
+FROM alpine:latest
 
-# Install ca-certificates for SSL/TLS connections
-RUN apk --no-cache add ca-certificates
+# Set environment variables for user/group
+ENV UID=1001
+ENV USER=appuser
+ENV GID=1001
+ENV GROUP=appgroup
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -S appuser -u 1001 -G appgroup
+# Create non-root user and group
+RUN addgroup -g $GID -S $GROUP && \
+    adduser -S -u $UID -G $GROUP $USER
+
+# Install ca-certificates and timezone
+RUN apk add --no-cache ca-certificates tzdata && update-ca-certificates
+
+# Set the timezone
+ENV TZ=Asia/Ho_Chi_Minh
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /app
 
-# Copy binary and config from builder stage
+# Copy the binary from the builder stage
 COPY --from=builder /app/main .
-COPY --from=builder /app/config ./config
 
-# Copy proto files (if needed at runtime)
+# Copy config and protogen if needed at runtime
+COPY --from=builder /app/config ./config
 COPY --from=builder /app/protogen ./protogen
 
 # Change ownership to non-root user
-RUN chown -R appuser:appgroup /app
-USER appuser
+RUN chown -R $USER:$GROUP /app
 
+# Expose the service port
 EXPOSE 50054
 
-CMD ["./main"]
+# Run the application as non-root user
+USER $USER
+
+# Start the application
+ENTRYPOINT ["./main"]

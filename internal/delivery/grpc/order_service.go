@@ -10,17 +10,17 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type orderService struct {
+type orderHandler struct {
 	l   log.Logger
 	svc services.OrderService
 	orderpb.UnimplementedOrderServiceServer
 }
 
-func NewOrderService(l log.Logger, svc services.OrderService) orderpb.OrderServiceServer {
-	return &orderService{l: l, svc: svc}
+func NewOrderServiceServer(l log.Logger, svc services.OrderService) orderpb.OrderServiceServer {
+	return &orderHandler{l: l, svc: svc}
 }
 
-func (s *orderService) Create(ctx context.Context, req *orderpb.CreateRequest) (*orderpb.CreateResponse, error) {
+func (h orderHandler) Create(ctx context.Context, req *orderpb.CreateRequest) (*orderpb.CreateResponse, error) {
 	items := make([]models.OrderItem, len(req.Items))
 	for i, item := range req.Items {
 		items[i] = models.OrderItem{
@@ -29,7 +29,7 @@ func (s *orderService) Create(ctx context.Context, req *orderpb.CreateRequest) (
 		}
 	}
 
-	out, err := s.svc.CreateOrder(ctx, services.CreateOrderInput{
+	out, err := h.svc.CreateOrder(ctx, services.CreateOrderInput{
 		UserID: req.UserId,
 		Items:  items,
 	})
@@ -44,7 +44,7 @@ func (s *orderService) Create(ctx context.Context, req *orderpb.CreateRequest) (
 	}, nil
 }
 
-func (h *orderService) FindOne(ctx context.Context, req *orderpb.FindOneRequest) (*orderpb.FindOneResponse, error) {
+func (h orderHandler) FindOne(ctx context.Context, req *orderpb.FindOneRequest) (*orderpb.FindOneResponse, error) {
 	o, err := h.svc.FindOneOrder(ctx, services.GetOneOrderInput{
 		ID:   req.GetId(),
 		Code: req.GetCode(),
@@ -58,7 +58,7 @@ func (h *orderService) FindOne(ctx context.Context, req *orderpb.FindOneRequest)
 	}, nil
 }
 
-func (h *orderService) FindMany(ctx context.Context, req *orderpb.FindManyRequest) (*orderpb.FindManyResponse, error) {
+func (h orderHandler) FindMany(ctx context.Context, req *orderpb.FindManyRequest) (*orderpb.FindManyResponse, error) {
 	out, err := h.svc.GetOrders(ctx, services.GetOrdersInput{
 		UserID: req.GetUserId(),
 		Status: stringFromOrderStatusProto(req.GetStatus()),
@@ -77,7 +77,7 @@ func (h *orderService) FindMany(ctx context.Context, req *orderpb.FindManyReques
 	}, nil
 }
 
-func (h *orderService) UpdateStatus(ctx context.Context, req *orderpb.UpdateStatusRequest) (*emptypb.Empty, error) {
+func (h orderHandler) UpdateStatus(ctx context.Context, req *orderpb.UpdateStatusRequest) (*emptypb.Empty, error) {
 	if err := h.svc.UpdateOrderStatus(ctx, services.UpdateOrderStatusInput{
 		ID:     req.GetId(),
 		Code:   req.GetCode(),

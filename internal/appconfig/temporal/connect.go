@@ -14,20 +14,18 @@ func Connect(cfg config.TemporalConfig) (client.Client, error) {
 		Namespace: cfg.Namespace,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to create Temporal Client: %w", err)
+		return nil, fmt.Errorf("failed to initialize Temporal client: %v", err)
 	}
-	defer tCli.Close()
 
-	log.Println("Connected to Temporal!")
-
+	log.Printf("Temporal Client connected.")
 	return tCli, nil
 }
 
-func Disconnect(tCli client.Client) {
-	if tCli == nil {
+func Disconnect(cli client.Client) {
+	if cli == nil {
 		return
 	}
 
-	tCli.Close()
-	log.Println("Connection to Temporal closed.")
+	cli.Close()
+	log.Printf("Temporal Client connection closed.")
 }

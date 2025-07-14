@@ -14,7 +14,7 @@ type implOrderRepository struct {
 	clock func() time.Time
 }
 
-func NewOrderRepository(l log.Logger, db mongo.Database) repositories.OrderRepository {
+func NewOrderRepo(l log.Logger, db mongo.Database) repositories.OrderRepository {
 	return &implOrderRepository{
 		l:     l,
 		db:    db,

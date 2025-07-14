@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/vogiaan1904/order-svc/config"
 	"github.com/vogiaan1904/order-svc/internal/appconfig/mongo"
 	"github.com/vogiaan1904/order-svc/internal/appconfig/temporal"
@@ -14,10 +12,9 @@ import (
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		panic(err)
 	}
 
-	// Initialize logger
 	l := pkgLog.InitializeZapLogger(pkgLog.ZapConfig{
 		Level:    cfg.Log.Level,
 		Encoding: cfg.Log.Encoding,
@@ -46,7 +43,12 @@ func main() {
 	}
 	defer cleanupGrpc()
 
-	s := server.NewServer(l, cfg, db, grpcClis, temporalCli)
+	s := server.New(l, server.Config{
+		Port:     cfg.Server.Port,
+		Db:       db,
+		Grpc:     grpcClis,
+		Temporal: temporalCli,
+	})
 	if err := s.Run(); err != nil {
 		panic(err)
 	}
